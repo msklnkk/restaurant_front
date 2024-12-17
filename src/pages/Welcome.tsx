@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AppBar, Toolbar } from '@mui/material';
 import { 
   Container,
@@ -48,7 +48,9 @@ const foodImages = [
 
 const Welcome: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isLoading, setIsLoading] = useState(true);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   // Имитация загрузки данных
   useEffect(() => {
@@ -57,6 +59,17 @@ const Welcome: React.FC = () => {
         // Имитация задержки загрузки
         await new Promise(resolve => setTimeout(resolve, 2000));
         setIsLoading(false);
+
+        // Проверяем URL параметр success
+        const params = new URLSearchParams(location.search);
+        if (params.get('success') === 'true') {
+          setShowSuccess(true);
+          // Очищаем URL через 3 секунды
+          setTimeout(() => {
+            navigate('/', { replace: true });
+            setShowSuccess(false);
+          }, 3000);
+        }
       } catch (error) {
         console.error('Error loading data:', error);
         setIsLoading(false);
@@ -64,7 +77,7 @@ const Welcome: React.FC = () => {
     };
 
     loadData();
-  }, []);
+  }, [location, navigate]);
 
   // Показываем Loading пока идет загрузка
   if (isLoading) {
@@ -73,6 +86,38 @@ const Welcome: React.FC = () => {
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+        {/* Сообщение об успешном входе */}
+        {showSuccess && (
+            <Box
+                sx={{
+                    position: 'fixed',
+                    top: 20,
+                    right: 20,
+                    zIndex: 2000,
+                    backgroundColor: 'success.main',
+                    color: 'white',
+                    padding: 2,
+                    borderRadius: 1,
+                    boxShadow: 3,
+                    animation: 'slideIn 0.3s ease-out',
+                    '& @keyframes slideIn': {
+                        from: {
+                            transform: 'translateX(100%)',
+                            opacity: 0,
+                        },
+                        to: {
+                            transform: 'translateX(0)',
+                            opacity: 1,
+                        },
+                    },
+                }}
+            >
+                <Typography>
+                    Вы успешно вошли в систему!
+                </Typography>
+            </Box>
+        )}
+
         {/* AppBar с кнопками авторизации */}
       <AppBar 
         position="absolute" 
