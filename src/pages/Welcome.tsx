@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AppBar, Toolbar } from '@mui/material';
 import { 
   Container,
   Typography,
@@ -8,8 +9,6 @@ import {
   Card,
   CardContent,
   Paper,
-  ImageList,
-  ImageListItem,
   CircularProgress,
 } from '@mui/material';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
@@ -34,16 +33,16 @@ const Loading = () => (
 // Добавляем массив с изображениями блюд
 const foodImages = [
   {
-    img: 'url_to_food_image_1.jpg',
-    title: 'Фирменное блюдо 1',
+    img: '/images/veal.jpg',
+    title: 'Медальоны из телятины',
   },
   {
-    img: 'url_to_food_image_2.jpg',
-    title: 'Фирменное блюдо 2',
+    img: '/images/foie-gras.jpg',
+    title: 'Фуа-гра',
   },
   {
-    img: 'url_to_food_image_3.jpg',
-    title: 'Фирменное блюдо 3',
+    img: '/images/сhocolate.jpg',
+    title: 'Шоколадный фондан',
   },
 ];
 
@@ -74,6 +73,44 @@ const Welcome: React.FC = () => {
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+        {/* AppBar с кнопками авторизации */}
+      <AppBar 
+        position="absolute" 
+        color="transparent" 
+        elevation={0}
+      >
+        <Toolbar sx={{ justifyContent: 'flex-end' }}>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="outlined"
+              onClick={() => navigate('/login')}
+              sx={{
+                color: 'white',
+                borderColor: 'white',
+                '&:hover': {
+                  borderColor: 'white',
+                  backgroundColor: 'rgba(255,255,255,0.1)',
+                }
+              }}
+            >
+              Войти
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => navigate('/register')}
+              sx={{
+                bgcolor: 'white',
+                color: 'primary.main',
+                '&:hover': {
+                  bgcolor: 'grey.100',
+                }
+              }}
+            >
+              Регистрация
+            </Button>
+          </Box>
+        </Toolbar>
+      </AppBar>
       {/* Hero Section */}
       <Paper
         sx={{
@@ -112,14 +149,14 @@ const Welcome: React.FC = () => {
                 textShadow: '2px 2px 4px rgba(0,0,0,.5)'
               }}
             >
-              Добро пожаловать в Restaurant Name
+              Добро пожаловать в L'ESSENCE
             </Typography>
             <Typography
               variant="h5"
               component="p"
               sx={{ maxWidth: '600px', mx: 'auto', mb: 4 }}
             >
-              Изысканная кухня для истинных ценителей
+              
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
               <Button 
@@ -157,9 +194,6 @@ const Welcome: React.FC = () => {
         <Box sx={{ textAlign: 'center', mb: 6 }}>
           <Typography variant="h4" gutterBottom color="primary">
             Почему выбирают нас
-          </Typography>
-          <Typography variant="h6" color="text.secondary" component="p">
-            Откройте для себя мир великолепных вкусов и незабываемых впечатлений
           </Typography>
         </Box>
 
@@ -212,60 +246,61 @@ const Welcome: React.FC = () => {
 
         {/* Галерея блюд */}
         <Box sx={{ mb: 8 }}>
-          <Typography variant="h4" gutterBottom textAlign="center" color="primary">
-            Наши фирменные блюда
-          </Typography>
-          <ImageList
-            sx={{ width: '100%', height: 450 }}
-            variant="quilted"
-            cols={4}
-            rowHeight={200}
-          >
-            {foodImages.map((item) => (
-              <ImageListItem key={item.img} cols={item.img === foodImages[0].img ? 2 : 1} rows={item.img === foodImages[0].img ? 2 : 1}>
-                <img
-                  src={item.img}
-                  alt={item.title}
-                  loading="lazy"
-                  style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-                />
-              </ImageListItem>
-            ))}
-          </ImageList>
-        </Box>
-
-        {/* Призыв к действию */}
-        <Box 
-          sx={{ 
-            textAlign: 'center', 
-            py: 8,
-            backgroundColor: 'primary.main',
-            color: 'white',
-            borderRadius: 2,
-            mb: 8
-          }}
-        >
-          <Typography variant="h4" gutterBottom>
-            Готовы попробовать?
-          </Typography>
-          <Typography variant="h6" component="p" sx={{ mb: 4 }}>
-            Забронируйте столик прямо сейчас и получите комплимент от шефа!
-          </Typography>
-          <Button 
-            variant="contained" 
-            size="large"
-            onClick={() => navigate('/reservation')}
-            sx={{ 
-              backgroundColor: 'white',
-              color: 'primary.main',
-              '&:hover': {
-                backgroundColor: 'grey.100',
-              }
-            }}
-          >
-            Забронировать столик
-          </Button>
-        </Box>
+            <Typography variant="h4" gutterBottom textAlign="center" color="primary" sx={{ mb: 4 }}>
+                Наши фирменные блюда
+            </Typography>
+            
+            <Box sx={{ 
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 4,
+                justifyContent: 'center'
+            }}>
+                {foodImages.map((item) => (
+                <Box 
+                    key={item.img}
+                    sx={{
+                    width: 350, // фиксированная ширина карточки
+                    transition: 'transform 0.2s',
+                    '&:hover': {
+                        transform: 'scale(1.02)',
+                    }
+                    }}
+                >
+                    <Box sx={{
+                    width: '100%',
+                    height: 300, // фиксированная высота для изображения
+                    overflow: 'hidden',
+                    borderRadius: 2,
+                    mb: 2
+                    }}>
+                    <img
+                        src={item.img}
+                        alt={item.title}
+                        style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        transition: 'transform 0.3s',
+                        }}
+                    />
+                    </Box>
+                    
+                    <Box sx={{ textAlign: 'center' }}>
+                    <Typography 
+                        variant="h6" 
+                        sx={{ 
+                        fontWeight: 'bold',
+                        mb: 1
+                        }}
+                    >
+                        {item.title}
+                    </Typography>
+                    </Box>
+                </Box>
+                ))}
+            </Box>
+            </Box>
       </Container>
     </Box>
   );

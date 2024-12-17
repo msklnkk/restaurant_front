@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { styled } from '@mui/material/styles';
+import { Dish } from '../types/database.types';
 import {
   Container,
   Typography,
@@ -17,43 +19,51 @@ import {
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
-// Интерфейс для блюда
-interface MenuItem {
-  id: number;
-  name: string;
-  description: string;
+interface MenuDish extends Dish {
   price: number;
   image: string;
   category: string;
 }
 
 // Моковые данные для меню
-const menuItems: MenuItem[] = [
+const menuItems: MenuDish[] = [
   {
-    id: 1,
-    name: 'Стейк Рибай',
-    description: 'Сочный стейк из отборной говядины с гарниром',
-    price: 2500,
-    image: 'url_to_steak_image.jpg',
+    dishid: 1,
+    name: 'Медальоны из телятины',
+    type: 'Горячие блюда',
+    recipe: 'Рецепт медальонов из телятины',
+    price: 1200,
+    image: '/images/veal.jpg',
     category: 'Горячие блюда'
   },
   {
-    id: 2,
-    name: 'Цезарь с курицей',
-    description: 'Классический салат с куриным филе и соусом Цезарь',
+    dishid: 2,
+    name: 'Фуа-гра',
+    type: 'Закуски',
+    recipe: 'Рецепт фуа-гра',
     price: 650,
-    image: 'url_to_caesar_image.jpg',
-    category: 'Салаты'
+    image: '/images/foie-gras.jpg',
+    category: 'Закуски'
   },
   {
-    id: 3,
-    name: 'Борщ',
-    description: 'Традиционный борщ со сметаной и чесночными пампушками',
-    price: 450,
-    image: 'url_to_borsch_image.jpg',
-    category: 'Супы'
+    dishid: 3,
+    name: 'Шоколадный фондан',
+    type: 'Десерты',
+    recipe: 'Рецепт шоколадного фондана',
+    price: 350,
+    image: '/images/сhocolate.jpg',
+    category: 'Десерты'
   },
 ];
+
+const CartChip = styled(Chip)(({ theme }) => ({
+  cursor: 'pointer',
+  '&:hover': {
+    backgroundColor: theme.palette.primary.main,
+    color: 'white',
+  },
+  transition: 'all 0.3s ease',
+}));
 
 // Получаем уникальные категории из меню
 const categories: string[] = ['Все', ...Array.from(new Set(menuItems.map(item => item.category)))];
@@ -61,18 +71,23 @@ const categories: string[] = ['Все', ...Array.from(new Set(menuItems.map(item
 const Menu: React.FC = () => {
     const navigate = useNavigate();
     const [selectedCategory, setSelectedCategory] = useState<string>('Все');
-    const [cartItems, setCartItems] = useState<MenuItem[]>([]);
-  
+    const [cartItems, setCartItems] = useState<MenuDish[]>([]);
+
     const filteredItems = selectedCategory === 'Все'
       ? menuItems
-      : menuItems.filter(item => item.category === selectedCategory);
-  
-    const handleAddToCart = (item: MenuItem) => {
+      : menuItems.filter(item => item.type === selectedCategory);
+
+    const handleAddToCart = (item: MenuDish) => {
       setCartItems(prevItems => [...prevItems, item]);
     };
-  
+
     const cartTotal = cartItems.reduce((sum, item) => sum + item.price, 0);
-  
+
+    // Добавляем обработчик для перехода в корзину
+    const handleCartClick = () => {
+      navigate('/cart', { state: { cartItems, cartTotal } });
+    };
+
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', py: 4 }}>
         <Container>
@@ -90,17 +105,23 @@ const Menu: React.FC = () => {
               <ArrowBackIcon />
             </IconButton>
           </Box>
-  
+
           <Typography variant="h3" component="h1" gutterBottom textAlign="center" color="primary">
             Наше меню
           </Typography>
-  
+
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-            <Chip
+            <CartChip
               icon={<ShoppingCartIcon />}
               label={`${cartItems.length} items | ${cartTotal} ₽`}
               color="primary"
               variant="outlined"
+              onClick={handleCartClick}
+              sx={{
+                '&:hover': {
+                  transform: 'scale(1.05)',
+                },
+              }}
             />
           </Box>
   
@@ -125,20 +146,17 @@ const Menu: React.FC = () => {
             gap: 4
           }}>
             {filteredItems.map((item) => (
-              <Card key={item.id} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Card key={item.dishid} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <CardMedia
                   component="img"
                   height="200"
-                  image={item.image}
-                  alt={item.name}
+                  image={item.image || ''}
+                  alt={item.name || ''}
                   sx={{ objectFit: 'cover' }}
                 />
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Typography gutterBottom variant="h5" component="h2">
                     {item.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {item.description}
                   </Typography>
                   <Typography variant="h6" color="primary" sx={{ mt: 2 }}>
                     {item.price} ₽
