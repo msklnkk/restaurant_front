@@ -1,26 +1,16 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { Routes, Route } from 'react-router-dom';
+import Welcome from './pages/Welcome.tsx';
+import Menu from './pages/Menu.tsx';
 
-function App() {
+const App: React.FC = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Routes>
+      <Route path="/" element={<Welcome />} />
+      <Route path="/menu" element={<Menu />} />
+      <Route path="/reservation" element={<div>Reservation </div>} />
+    </Routes>
   );
-}
+};
 
 export default App;
