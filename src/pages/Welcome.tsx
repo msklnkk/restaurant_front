@@ -1,6 +1,8 @@
+// Импорты необходимых компонентов и иконок из Material-UI
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AppBar, Toolbar } from '@mui/material';
+import { useAuth } from '../hooks/useAuth.ts';
 import { 
   Container,
   Typography,
@@ -14,6 +16,9 @@ import {
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import LoyaltyIcon from '@mui/icons-material/Loyalty';
+import { Link } from 'react-router-dom';
+import PersonIcon from '@mui/icons-material/Person';
+import { AuthService } from '../services/auth.service.ts';
 
 // Loading компонент
 const Loading = () => (
@@ -30,7 +35,7 @@ const Loading = () => (
     </Box>
   );
 
-// Добавляем массив с изображениями блюд
+// Массив данных для галереи блюд
 const foodImages = [
   {
     img: '/images/veal.jpg',
@@ -46,13 +51,18 @@ const foodImages = [
   },
 ];
 
+// Основной компонент Welcome
 const Welcome: React.FC = () => {
+  // Хуки для навигации и получения параметров URL
   const navigate = useNavigate();
   const location = useLocation();
+  const { getCurrentToken } = useAuth();
+
+  // Состояния для управления загрузкой и отображением уведомления
   const [isLoading, setIsLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Имитация загрузки данных
+  // Эффект для имитации загрузки данных и обработки параметра success в URL
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -89,7 +99,7 @@ const Welcome: React.FC = () => {
         {/* Сообщение об успешном входе */}
         {showSuccess && (
             <Box
-                sx={{
+                sx={{ /* стили для анимированного уведомления */ 
                     position: 'fixed',
                     top: 20,
                     right: 20,
@@ -119,44 +129,58 @@ const Welcome: React.FC = () => {
         )}
 
         {/* AppBar с кнопками авторизации */}
-      <AppBar 
-        position="absolute" 
-        color="transparent" 
-        elevation={0}
-      >
-        <Toolbar sx={{ justifyContent: 'flex-end' }}>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button
-              variant="outlined"
-              onClick={() => navigate('/login')}
-              sx={{
-                color: 'white',
-                borderColor: 'white',
-                '&:hover': {
-                  borderColor: 'white',
-                  backgroundColor: 'rgba(255,255,255,0.1)',
-                }
-              }}
-            >
-              Войти
-            </Button>
-            <Button
-              variant="contained"
-              onClick={() => navigate('/register')}
-              sx={{
-                bgcolor: 'white',
-                color: 'primary.main',
-                '&:hover': {
-                  bgcolor: 'grey.100',
-                }
-              }}
-            >
-              Регистрация
-            </Button>
-          </Box>
-        </Toolbar>
-      </AppBar>
-      {/* Hero Section */}
+        <AppBar position="static" color="transparent" elevation={0}>
+          <Container>
+            <Toolbar>
+              
+              {/* Если пользователь авторизован */}
+              {getCurrentToken() ? (
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Button 
+                    component={Link} 
+                    to="/profile" 
+                    variant="text" 
+                    color="primary"
+                    startIcon={<PersonIcon />}
+                  >
+                    Профиль
+                  </Button>
+                  <Button 
+                    variant="outlined" 
+                    color="primary" 
+                    onClick={() => {
+                      AuthService.logout();
+                      window.location.reload();
+                    }}
+                  >
+                    Выйти
+                  </Button>
+                </Box>
+              ) : (
+                // Если пользователь не авторизован
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Button 
+                    component={Link} 
+                    to="/login" 
+                    variant="outlined" 
+                    color="primary"
+                  >
+                    Войти
+                  </Button>
+                  <Button 
+                    component={Link} 
+                    to="/register" 
+                    variant="contained" 
+                    color="primary"
+                  >
+                    Регистрация
+                  </Button>
+                </Box>
+              )}
+            </Toolbar>
+          </Container>
+        </AppBar>
+      {/* Hero секция с фоновым изображением */}
       <Paper
         sx={{
           position: 'relative',
@@ -166,11 +190,10 @@ const Welcome: React.FC = () => {
           backgroundSize: 'cover',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'center',
-          backgroundImage: 'url(your_hero_image.jpg)',
           minHeight: '500px',
         }}
       >
-        {/* Overlay */}
+        {/* Затемняющий оверлей */}
         <Box
           sx={{
             position: 'absolute',
@@ -182,7 +205,7 @@ const Welcome: React.FC = () => {
           }}
         />
         
-        {/* Hero content */}
+        {/* Контент hero секции */}
         <Container sx={{ position: 'relative', pt: 8, pb: 6 }}>
           <Box sx={{ textAlign: 'center', py: 4 }}>
             <Typography
@@ -235,7 +258,7 @@ const Welcome: React.FC = () => {
       </Paper>
 
       <Container>
-        {/* Преимущества */}
+        {/* Заголовок секции преимуществ */}
         <Box sx={{ textAlign: 'center', mb: 6 }}>
           <Typography variant="h4" gutterBottom color="primary">
             Почему выбирают нас
@@ -295,7 +318,7 @@ const Welcome: React.FC = () => {
                 Наши фирменные блюда
             </Typography>
             
-            <Box sx={{ 
+            <Box sx={{ /* Маппинг массива foodImages для отображения карточек блюд */
                 display: 'flex',
                 flexWrap: 'wrap',
                 gap: 4,

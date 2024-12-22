@@ -1,5 +1,7 @@
+// Импорт необходимых зависимостей
 import React, { useState } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
+// Импорт компонентов Material-UI
 import {
   Container,
   Box,
@@ -12,10 +14,13 @@ import {
   Alert,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+// Импорт сервиса аутентификации
 import { AuthService } from '../services/auth.service.ts';
 
 const Register: React.FC = () => {
+  // Хук для навигации
   const navigate = useNavigate();
+  // Состояние формы с данными пользователя
   const [formData, setFormData] = useState({
     name: '',
     mail: '',
@@ -24,10 +29,12 @@ const Register: React.FC = () => {
     phone: '',
   });
 
+  // Состояния для ошибок валидации, серверных ошибок и загрузки
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [serverError, setServerError] = useState<string>('');
   const [loading, setLoading] = useState(false);
 
+  // Функция валидации формы
   const validateForm = (): boolean => {
     const newErrors: { [key: string]: string } = {};
 
@@ -62,8 +69,10 @@ const Register: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Обработчик изменения полей формы
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    // Обновление значения поля
     setFormData(prevState => ({
       ...prevState,
       [name]: value,
@@ -74,10 +83,12 @@ const Register: React.FC = () => {
     }
   };
 
+  // Обработчик отправки формы
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setServerError('');
 
+    // Проверка валидации перед отправкой
     if (!validateForm()) {
       return;
     }
@@ -85,6 +96,7 @@ const Register: React.FC = () => {
     setLoading(true);
 
     try {
+      // Подготовка данных для отправки
       const registerData = {
         mail: formData.mail,
         password: formData.password,
@@ -92,12 +104,14 @@ const Register: React.FC = () => {
         phone_number: formData.phone || undefined, // если телефон пустой, не отправляем его
       };
       
-      // После успешной регистрации перенаправляем на страницу входа
+      // Отправка данных на сервер
       await AuthService.register(registerData);
+      // Перенаправление на страницу входа после успешной регистрации
       navigate('/login', { 
         state: { message: 'Регистрация успешна. Пожалуйста, войдите в систему.' } 
       });
     } catch (err) {
+      // Обработка ошибок
       if (err instanceof Error) {
         setServerError(err.message);
       } else {
@@ -109,8 +123,10 @@ const Register: React.FC = () => {
   };
 
   return (
+    // Контейнер страницы
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', py: 4 }}>
       <Container maxWidth="sm">
+        {/* Кнопка возврата на главную */}
         <Box sx={{ position: 'absolute', top: 20, left: 20 }}>
           <IconButton 
             onClick={() => navigate('/')}
@@ -126,18 +142,22 @@ const Register: React.FC = () => {
           </IconButton>
         </Box>
 
+        {/* Карточка с формой регистрации */}
         <Paper elevation={3} sx={{ p: 4, mt: 8 }}>
           <Typography variant="h4" component="h1" gutterBottom textAlign="center">
             Регистрация
           </Typography>
 
+          {/* Отображение серверной ошибки */}
           {serverError && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {serverError}
             </Alert>
           )}
 
+          {/* Форма регистрации */}
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+            {/* Поля ввода данных */}
             <TextField
               fullWidth
               label="Имя"
@@ -207,6 +227,7 @@ const Register: React.FC = () => {
               disabled={loading}
             />
 
+            {/* Кнопка отправки формы */}
             <Button
               type="submit"
               fullWidth
@@ -217,6 +238,7 @@ const Register: React.FC = () => {
               {loading ? 'Регистрация...' : 'Зарегистрироваться'}
             </Button>
 
+            {/* Ссылка на страницу входа */}
             <Box sx={{ textAlign: 'center' }}>
               <Link 
                 component={RouterLink} 

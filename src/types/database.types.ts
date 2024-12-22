@@ -77,18 +77,6 @@ export interface Dish {
     recipe: string | null;
 }
   
-// Заказы
-export interface Order {
-    orderid: number;
-    tableid: number | null;
-    order_date: Date | null;
-    total_sum: number | null;
-    status: string | null;
-    staffid: number | null;
-    clientid: number | null;
-    payment_method: string | null;
-}
-  
 // Продукты в доставке
 export interface ProductInDelivery {
     productid: number;
@@ -116,4 +104,10 @@ export interface OrderedDrink {
     orderid: number;
     drinkid: number;
     count: number | null;
+}
+
+
+// Расширенный интерфейс для блюда с количеством (для корзины)
+export interface DishWithQuantity extends Dish {
+    quantity: number;
 }

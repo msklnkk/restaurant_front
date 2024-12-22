@@ -1,5 +1,7 @@
+// Импорт необходимых зависимостей
 import React, { useState } from 'react';
 import { useNavigate, Link as RouterLink, useLocation } from 'react-router-dom';
+// Импорт компонентов из Material-UI
 import {
   Container,
   Box,
@@ -14,20 +16,26 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { AuthService } from '../services/auth.service.ts';
 
+// Интерфейс для типизации состояния локации
 interface LocationState {
   message?: string;
 }
 
+// Интерфейс для данных формы входа
 interface LoginFormData {
   mail: string;
   password: string;
 }
 
+// Основной компонент Login
 const Login: React.FC = () => {
+  // Хуки для навигации и получения состояния локации
   const navigate = useNavigate();
   const location = useLocation();
   const state = location.state as LocationState;
+  const message = location.state?.message;
 
+   // Состояния компонента
   const [formData, setFormData] = useState<LoginFormData>({
     mail: '',
     password: '',
@@ -36,6 +44,7 @@ const Login: React.FC = () => {
   const [success, setSuccess] = useState<string>(state?.message || '');
   const [loading, setLoading] = useState(false);
 
+  // Обработчик изменения полей формы
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prevState => ({
@@ -47,6 +56,7 @@ const Login: React.FC = () => {
     setSuccess('');
   };
 
+  // Функция валидации формы
   const validateForm = (): boolean => {
     if (!formData.mail) {
       setError('Введите email');
@@ -59,6 +69,7 @@ const Login: React.FC = () => {
     return true;
   };
 
+  // Обработчик отправки формы
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -71,21 +82,24 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
+       // Формирование данных для отправки
       const formUrlEncoded = new URLSearchParams();
       formUrlEncoded.append('username', formData.mail);
       formUrlEncoded.append('password', formData.password);
       formUrlEncoded.append('grant_type', 'password'); // добавляем grant_type
 
+      // Отправка запроса на авторизацию
       const response = await AuthService.login(formUrlEncoded);
       
       if (response.access_token) {
-        // Сохраняем токен в localStorage или в контекст
+        // Сохранение токена и редирект
         localStorage.setItem('access_token', response.access_token);
         navigate('/?success=true');
       } else {
         setError('Не удалось получить токен доступа');
       }
     } catch (err: any) {
+      // Обработка различных типов ошибок
       console.error('Login error:', err);
       
       if (err.response?.data?.detail) {
@@ -108,9 +122,11 @@ const Login: React.FC = () => {
     }
   };
 
+  // Разметка компонента
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', py: 4 }}>
       <Container maxWidth="sm">
+        {/* Кнопка возврата на главную */}
         <Box sx={{ position: 'absolute', top: 20, left: 20 }}>
           <IconButton 
             onClick={() => navigate('/')}
@@ -126,23 +142,27 @@ const Login: React.FC = () => {
           </IconButton>
         </Box>
 
+        {/* Карточка с формой */}
         <Paper elevation={3} sx={{ p: 4, mt: 8 }}>
           <Typography variant="h4" component="h1" gutterBottom textAlign="center">
             Вход
           </Typography>
-          
+
+          {/* Сообщение о необходимости авторизации */}
+          {message && (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              {message}
+            </Alert>
+          )}
+
+          {/* Отображение ошибок */}
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {error}
             </Alert>
           )}
 
-          {success && (
-            <Alert severity="success" sx={{ mb: 2 }}>
-              {success}
-            </Alert>
-          )}
-
+          {/* Форма входа */}
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
             <TextField
               fullWidth
@@ -172,6 +192,7 @@ const Login: React.FC = () => {
               helperText={error && error.includes('пароль') ? error : ''}
             />
             
+            {/* Кнопка отправки формы */}
             <Button
               type="submit"
               fullWidth
@@ -182,6 +203,7 @@ const Login: React.FC = () => {
               {loading ? 'Вход...' : 'Войти'}
             </Button>
             
+            {/* Ссылка на регистрацию */}
             <Box sx={{ textAlign: 'center' }}>
               <Link 
                 component={RouterLink} 
