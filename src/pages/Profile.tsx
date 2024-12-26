@@ -17,6 +17,7 @@ import axios from '../services/axios.config.ts';
 import { IClientResponse } from '../types/auth.types.ts';
 import { decodeToken } from '../utils/jwt.ts';
 import OrderHistory from './OrderHistory.tsx';
+import AdminProfile from './AdminProfile.tsx';
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ const Profile: React.FC = () => {
   const [userData, setUserData] = useState<IClientResponse | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editedData, setEditedData] = useState({
     name: '',
@@ -59,6 +61,7 @@ const Profile: React.FC = () => {
         // Получаем полные данные пользователя по ID
         const userDataResponse = await axios.get<IClientResponse>(`/user/${userId}`);
         setUserData(userDataResponse.data);
+        setIsAdmin(userDataResponse.data.is_admin);
         setEditedData({
           name: userDataResponse.data.name || '',
           phone_number: userDataResponse.data.phone_number || '',
@@ -73,6 +76,10 @@ const Profile: React.FC = () => {
 
     fetchUserData();
   }, [getCurrentToken, navigate]);
+
+  if (isAdmin) {
+    return <AdminProfile />;
+  }
 
   const handleEdit = () => {
     setIsEditing(true);

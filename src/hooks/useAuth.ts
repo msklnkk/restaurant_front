@@ -26,7 +26,7 @@ export const useAuth = () => {
   const loadProfile = useCallback(async () => {
     try {
       setIsLoading(true);
-      const userId = getCurrentUserId();
+      const userId = await getCurrentUserId();
       if (!userId) {
         throw new Error('Не удалось определить ID пользователя');
       }
@@ -46,7 +46,6 @@ export const useAuth = () => {
       setIsLoading(true);
       setError(null);
       const response: IToken = await AuthService.login(formData);
-      localStorage.setItem('access_token', response.access_token);
       await getCurrentUser();
       return response;
     } catch (err: any) {

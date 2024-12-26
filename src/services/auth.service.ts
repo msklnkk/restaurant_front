@@ -39,19 +39,36 @@ export const AuthService = {
    */
   async login(data: URLSearchParams): Promise<IToken> {
     // Отправляем POST запрос для получения токена
-    const { data: responseData } = await axios.post<IToken>('/token', data, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json'
+    try {
+      const { data: responseData } = await axios.post<IToken>('/token', data, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (!responseData?.access_token) {
+        throw new Error('Токен не получен от сервера');
       }
-    });
-    
-    // Если получен токен доступа, сохраняем его в localStorage
-    if (responseData.access_token) {
+      
       localStorage.setItem('access_token', responseData.access_token);
+      
+      return responseData;
+    } catch (error: any) {
+      localStorage.removeItem('access_token');
+      
+      if (error.response?.status === 401) {
+        throw new Error('Неверные учетные данные');
+      }
+      if (error.response?.data?.detail) {
+        throw new Error(error.response.data.detail);
+      }
+      if (error.request) {
+        throw new Error('Ошибка сети');
+      }
+      
+      throw error;
     }
-    
-    return responseData;
   },
 
   /**
@@ -86,12 +103,22 @@ export const AuthService = {
   /**
    * Получение ID текущего пользователя из токена
    */
-  getCurrentUserId(): number | null {
-    const token = this.getCurrentToken();
-    if (!token) return null;
+  async getCurrentUserId(): Promise<number | null> {
+    try {
+      const token = this.getCurrentToken();
+      if (!token) return null;
 
-    const decoded = decodeToken(token);
-    return decoded?.sub || null; // предполагаем, что ID находится в поле sub
+      const decoded = decodeToken(token);
+      const userEmail = decoded?.sub;
+      if (!userEmail) return null;
+
+      // Указываем тип ответа
+      const response = await axios.get<IClientResponse>(`/user/by-mail/${userEmail}`);
+      return response.data.clientid;
+    } catch (error) {
+      console.error('Error getting user ID:', error);
+      return null;
+    }
   },
 
   /**

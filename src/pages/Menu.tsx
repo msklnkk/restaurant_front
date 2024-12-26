@@ -7,7 +7,6 @@ import type { RootState } from '../store/store.ts';
 import axios from 'axios';
 import { styled } from '@mui/material/styles';
 import { Dish, Price, DishWithQuantity } from '../types/database.types';
-import { formatPrice } from '../utils/price.utils.ts';
 import {
     Container,
     Typography,
@@ -190,7 +189,12 @@ const Menu: React.FC = () => {
                     value={selectedCategory}
                     onChange={(_, newValue) => setSelectedCategory(newValue)}
                     centered
-                    sx={{ mb: 4 }}
+                    sx={{ 
+                        mb: 4,
+                        '& .MuiTab-root': {
+                            color: 'black',
+                        }
+                    }}
                 >
                     {categories.map((category) => (
                         <Tab key={category} label={category} value={category} />

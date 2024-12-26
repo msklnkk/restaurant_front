@@ -4,7 +4,8 @@ import {
   Typography, 
   Paper, 
   Chip,
-  CircularProgress 
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import axios from '../services/axios.config.ts';
 import { Order, OrderStatus, PaymentMethod } from '../types/order.types.ts';
@@ -13,20 +14,42 @@ interface OrderHistoryProps {
   clientId: number;
 }
 
-// Функция для определения цвета статуса
-const getStatusColor = (status: string | null): "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" => {
-  if (!status) return "default";
+type StatusColor = "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning";
+
+const STATUS_COLORS: Record<string, StatusColor> = {
+  'Новый': "info",
+  'Подтвержден': "primary",
+  'Готовится': "warning",
+  'Готов к выдаче': "secondary",
+  'Выполнен': "success",
+  'Отменен': "error"
+};
+
+const getStatusColor = (status: string | null): StatusColor => {
+  if (!status || !(status in STATUS_COLORS)) {
+    return "default";
+  }
+  return STATUS_COLORS[status];
+};
+
+const formatDate = (date: Date | null | string): string => {
+  if (!date) return 'Не указана';
   
-  const statusColors: { [key: string]: any } = {
-    [OrderStatus.NEW]: "info",
-    [OrderStatus.CONFIRMED]: "primary",
-    [OrderStatus.COOKING]: "warning",
-    [OrderStatus.READY]: "secondary",
-    [OrderStatus.COMPLETED]: "success",
-    [OrderStatus.CANCELLED]: "error"
-  };
-  
-  return statusColors[status] || "default";
+  try {
+    const dateObject = typeof date === 'string' ? new Date(date) : date;
+    return dateObject.toLocaleString('ru-RU', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+  } catch {
+    return 'Некорректная дата';
+  }
+};
+
+const formatPrice = (price: number | null | undefined): string => {
+  const num = Number(price);
+  return isNaN(num) ? '0.00' : num.toFixed(2);
 };
 
 const OrderHistory: React.FC<OrderHistoryProps> = ({ clientId }) => {
@@ -36,25 +59,32 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ clientId }) => {
 
   useEffect(() => {
     const fetchOrders = async () => {
+      if (!clientId) {
+        setError('ID клиента не указан');
+        setLoading(false);
+        return;
+      }
+
       try {
         const response = await axios.get<Order[]>(`/orders/client/${clientId}`);
-        setOrders(response.data);
+
+        const sortedOrders = response.data.sort((a, b) => b.orderid - a.orderid);
+        
+        setOrders(sortedOrders);
       } catch (err) {
         console.error('Ошибка при загрузке заказов:', err);
-        setError('Не удалось загрузить историю заказов');
+        setError(err instanceof Error ? err.message : 'Не удалось загрузить историю заказов');
       } finally {
         setLoading(false);
       }
     };
 
-    if (clientId) {
-      fetchOrders();
-    }
+    fetchOrders();
   }, [clientId]);
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" p={3}>
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
         <CircularProgress />
       </Box>
     );
@@ -62,9 +92,9 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ clientId }) => {
 
   if (error) {
     return (
-      <Typography color="error" align="center">
-        {error}
-      </Typography>
+      <Box p={2}>
+        <Alert severity="error">{error}</Alert>
+      </Box>
     );
   }
 
@@ -102,15 +132,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ clientId }) => {
               <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
                 <Box flex={1}>
                   <Typography variant="body2" color="textSecondary">
-                    Дата: {order.order_date 
-                      ? new Date(order.order_date).toLocaleString('ru-RU', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })
-                      : 'Не указана'}
+                    Дата: {formatDate(order.order_date)}
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
                     Способ оплаты: {order.payment_method || 'Не указан'}
@@ -133,7 +155,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ clientId }) => {
                       alignSelf: { xs: 'flex-start', sm: 'flex-end' }
                     }}
                   >
-                    {order.total_sum?.toFixed(2) || 0} ₽
+                    {formatPrice(order.total_sum)} ₽
                   </Typography>
                 </Box>
               </Box>
@@ -142,7 +164,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ clientId }) => {
         </Box>
       )}
     </Box>
-  );
+);
 };
-
+  
 export default OrderHistory;

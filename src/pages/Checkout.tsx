@@ -9,6 +9,7 @@ import {
     FormControlLabel, 
     Radio,
     Box,
+    IconButton,
     Alert,
     CircularProgress
 } from '@mui/material';
@@ -16,13 +17,17 @@ import { useOrders } from '../hooks/useOrders.ts';
 import { useAuth } from '../hooks/useAuth.ts';
 import { clearCart } from '../store/cartSlice.ts';
 import { PaymentMethod } from '../types/order.types.ts';
-import { RootState } from '../store/store.ts';
+import { RootState, AppDispatch } from '../store/store.ts';
 import { CartItem } from '../types/cart.types.ts';
 import * as ReactDOM from 'react-dom/client';
+import { AuthService } from '../services/auth.service.ts';
+import { submitOrder } from '../store/orderSlice.ts';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+
 
 const Checkout: React.FC = () => {
     const navigate = useNavigate();
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const cartItems = useSelector((state: RootState) => state.cart.items);
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.CARD);
     const { createOrder, isLoading, error } = useOrders();
@@ -31,15 +36,20 @@ const Checkout: React.FC = () => {
 
 
     useEffect(() => {
-        if (!isAuthenticated) {
-            navigate('/login', { 
-                state: { 
-                    from: '/checkout',
-                    message: 'Оформить заказ могут только авторизованные пользователи'
-                } 
-            });
-        }
-    }, [isAuthenticated, navigate]);
+        const checkAuth = async () => {
+            const userId = await AuthService.getCurrentUserId();
+            if (!userId) {
+                navigate('/login', { 
+                    state: { 
+                        from: '/checkout',
+                        message: 'Оформить заказ могут только авторизованные пользователи'
+                    } 
+                });
+            }
+        };
+        
+        checkAuth();
+    }, [navigate]);
 
     // Если не аутентифицирован, не рендерим компонент
     if (!isAuthenticated) {
@@ -73,8 +83,8 @@ const Checkout: React.FC = () => {
         e.preventDefault();
         
         try {
-            const clientId = getCurrentUserId();
-            if (clientId === null) {
+            const clientId = await AuthService.getCurrentUserId();
+            if (!clientId) {
                 navigate('/login', { 
                     state: { 
                         from: '/checkout',
@@ -83,8 +93,14 @@ const Checkout: React.FC = () => {
                 });
                 return;
             }
-    
-            await createOrder(cartItems, paymentMethod, clientId);
+
+            // Отправляем заказ через Redux
+            await dispatch(submitOrder({
+                cartItems,
+                paymentMethod,
+                clientId
+            })).unwrap();
+
             setOrderSuccess(true);
             dispatch(clearCart());
             
@@ -150,6 +166,20 @@ const Checkout: React.FC = () => {
 
     return (
         <Container maxWidth="sm">
+            <Box sx={{ position: 'absolute', top: 20, left: 20 }}>
+          <IconButton 
+            onClick={() => navigate('/cart')}
+            sx={{ 
+              bgcolor: 'primary.main',
+              color: 'white',
+              '&:hover': {
+                bgcolor: 'primary.dark',
+              }
+            }}
+          >
+            <ArrowBackIcon />
+          </IconButton>
+        </Box>
             <Typography variant="h4" gutterBottom sx={{ mt: 4 }}>
                 Оформление заказа
             </Typography>

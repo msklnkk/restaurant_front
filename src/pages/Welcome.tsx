@@ -11,7 +11,6 @@ import {
   Card,
   CardContent,
   Paper,
-  CircularProgress,
 } from '@mui/material';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
@@ -20,20 +19,6 @@ import { Link } from 'react-router-dom';
 import PersonIcon from '@mui/icons-material/Person';
 import { AuthService } from '../services/auth.service.ts';
 
-// Loading компонент
-const Loading = () => (
-    <Box
-      sx={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '100vh',
-        backgroundColor: 'background.default'
-      }}
-    >
-      <CircularProgress size={60} />
-    </Box>
-  );
 
 // Массив данных для галереи блюд
 const foodImages = [
@@ -88,11 +73,6 @@ const Welcome: React.FC = () => {
 
     loadData();
   }, [location, navigate]);
-
-  // Показываем Loading пока идет загрузка
-  if (isLoading) {
-    return <Loading />;
-  }
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -234,23 +214,6 @@ const Welcome: React.FC = () => {
                 sx={{ fontSize: '1.2rem', px: 4 }}
               >
                 Посмотреть меню
-              </Button>
-              <Button 
-                variant="outlined" 
-                size="large"
-                onClick={() => navigate('/reservation')}
-                sx={{ 
-                  fontSize: '1.2rem', 
-                  px: 4,
-                  color: 'white',
-                  borderColor: 'white',
-                  '&:hover': {
-                    borderColor: 'white',
-                    backgroundColor: 'rgba(255,255,255,0.1)',
-                  }
-                }}
-              >
-                Забронировать стол
               </Button>
             </Box>
           </Box>

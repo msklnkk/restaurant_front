@@ -1,6 +1,8 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { Order } from '../types/order.types.ts';
+import { Order, PaymentMethod } from '../types/order.types.ts';
 import axios from 'axios';
+import { CartItem } from '../types/cart.types.ts';
+import { OrderService } from '../services/order.service.ts';
 
 interface OrderState {
   orders: Order[];
@@ -16,17 +18,16 @@ const initialState: OrderState = {
 
 // Интерфейс для создания заказа
 interface CreateOrderRequest {
+  cartItems: CartItem[];
+  paymentMethod: PaymentMethod;
   clientId: number;
-  items: { dishId: number; count: number }[];
-  totalSum: number;
 }
 
 // Создаем заказ с явным указанием типов
-export const createOrder = createAsyncThunk<Order, CreateOrderRequest>(
-  'orders/create',
-  async (orderData) => {
-    const response = await axios.post<Order>('/api/add_order', orderData);
-    return response.data;
+export const submitOrder = createAsyncThunk<Order, CreateOrderRequest>(
+  'orders/submit',
+  async ({ cartItems, paymentMethod, clientId }) => {
+    return await OrderService.createOrder(cartItems, paymentMethod, clientId);
   }
 );
 
@@ -45,15 +46,15 @@ const orderSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(createOrder.pending, (state) => {
+      .addCase(submitOrder.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(createOrder.fulfilled, (state, action: PayloadAction<Order>) => {
+      .addCase(submitOrder.fulfilled, (state, action: PayloadAction<Order>) => {
         state.loading = false;
         state.orders.unshift(action.payload);
       })
-      .addCase(createOrder.rejected, (state, action) => {
+      .addCase(submitOrder.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Ошибка при создании заказа';
       })
